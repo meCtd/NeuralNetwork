@@ -1,0 +1,46 @@
+﻿<Window x:Class="NNUi.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:NNUi"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="400"
+        Width="300"
+        WindowStyle="SingleBorderWindow"
+        WindowStartupLocation="CenterScreen"
+        SnapsToDevicePixels="True">
+
+    <DockPanel LastChildFill="True"
+               >
+
+        <Button Content="Clear"
+                DockPanel.Dock="Bottom"
+                Click="Clear" />
+        <Button Content="Learn"
+                DockPanel.Dock="Bottom"
+                Click="Study" />
+        <Button Content="Draw"
+                DockPanel.Dock="Bottom"
+                Click="Draw" />
+        <Button Content="Hide dots"
+                DockPanel.Dock="Bottom"
+                Click="Aa" />
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="300" />
+            </Grid.RowDefinitions>
+            <Canvas x:Name="Net">
+
+            </Canvas>
+            <Canvas x:Name="Root"
+                    Background="Transparent"
+                    SnapsToDevicePixels="True"
+                    MouseRightButtonDown="MouseClick"
+                    MouseLeftButtonDown="MouseClick">
+            </Canvas>
+        </Grid>
+    </DockPanel>
+</Window>
