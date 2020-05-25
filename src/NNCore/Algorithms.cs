@@ -23,13 +23,12 @@ namespace NNCore
 
         public static Func<double, double> DerivativeTanH { get; } = (s) => 1 - Math.Pow(s, 2);
 
-
         public static Func<double[], double[], double> MSE { get; } = (expected, actual) =>
-         {
-             if (expected.Length != actual.Length)
-                 throw new ArgumentException(nameof(actual));
+        {
+            if (expected.Length != actual.Length)
+                throw new ArgumentException(nameof(actual));
 
-             return expected.Zip(actual, (e, a) => (Math.Pow(e - a, 2))).Sum() / expected.Length;
-         };
+            return expected.Zip(actual, (e, a) => (Math.Pow(e - a, 2))).Sum() / expected.Length;
+        };
     }
 }

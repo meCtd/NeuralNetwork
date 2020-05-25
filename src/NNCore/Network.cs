@@ -3,7 +3,6 @@ using System.Linq;
 
 namespace NNCore
 {
-
     public class NeuronalNetwork
     {
         private readonly Neuron[][] _neurons;
@@ -87,7 +86,6 @@ namespace NNCore
             for (int i = _neurons.Length - 1; i >= 1; i--)
             {
                 _neurons[i].ForEach(s => s.CoerceLinks());
-
             }
 
             return (error, result);

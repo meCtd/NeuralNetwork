@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace NNCore
+﻿namespace NNCore
 {
     class Link
     {
@@ -10,9 +6,6 @@ namespace NNCore
         public Neuron Target { get; }
 
         public double Weight { get; set; }
-
-        public double PrevWeight { get; set; }
-        public double Delta { get; set; }
 
         public Link(Neuron source, Neuron target)
         {

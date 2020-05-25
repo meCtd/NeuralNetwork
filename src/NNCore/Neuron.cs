@@ -11,65 +11,62 @@ namespace NNCore
 
         private readonly double _learningRatio = 0.01;
 
+        private readonly bool _withBias;
+
+        private readonly NeuronType _type;
+
+        private double _bias;
+
+        private double _error;
+
         public Link[] InputLinks { get; }
 
         public Link[] OutputLinks { get; }
 
-        private readonly bool _withBias;
-
-        public double Error { get; private set; } = 0;
-
-        public NeuronType Type => InputLinks.Length == 0
-            ? NeuronType.Input
-            : OutputLinks.Length == 0
-                ? NeuronType.Output
-                : NeuronType.Hidden;
-
-        public double Bias { get; set; } = 0;
+        public double InputData { get; set; }
+        public double OutputData { get; private set; }
 
         public Neuron(int inputLinkCount, int outputLinkCount, bool withBias = false)
         {
             InputLinks = new Link[inputLinkCount];
             OutputLinks = new Link[outputLinkCount];
 
-            if (!Equals(Type, NeuronType.Input) && withBias)
+            if (!Equals(GetNeuronType(), NeuronType.Input) && withBias)
             {
                 _withBias = true;
-                Bias = Algorithms.GetNumber();
+                _bias = Algorithms.GetNumber();
             }
+
+            _type = GetNeuronType();
         }
-
-
-        public double InputData { get; set; }
-        public double OutputData { get; private set; }
 
         public double ForwardPass(double input)
         {
-            if (Equals(Type, NeuronType.Input))
+            if (Equals(_type, NeuronType.Input))
                 return OutputData = InputData = input;
 
-            InputData = InputLinks.Select(s => s.Source.OutputData * s.Weight).Sum() + Bias;
+            InputData = InputLinks.Select(s => s.Source.OutputData * s.Weight).Sum() + _bias;
 
             return OutputData = Activation.Invoke(InputData);
         }
 
         public double SetError(double data)
         {
-            if (Equals(Type, NeuronType.Input))
+            if (Equals(_type, NeuronType.Input))
                 return default;
 
-            if (Equals(Type, NeuronType.Output))
-                return Error = (data - OutputData);
+            if (Equals(_type, NeuronType.Output))
+                return _error = (data - OutputData);
 
-            return Error = OutputLinks.Select(s => s.Weight * s.Target.Error).Sum();
+            return _error = OutputLinks.Select(s => s.Weight * s.Target._error).Sum();
         }
 
         public void CoerceLinks()
         {
-            if (Equals(Type, NeuronType.Input))
+            if (Equals(_type, NeuronType.Input))
                 return;
 
-            var gradient = Error * Derivative(OutputData) * _learningRatio;
+            var gradient = _error * Derivative(OutputData) * _learningRatio;
 
             foreach (var link in InputLinks)
             {
@@ -79,7 +76,16 @@ namespace NNCore
             }
 
             if (_withBias)
-                Bias += gradient;
+                _bias += gradient;
+        }
+        
+        private NeuronType GetNeuronType()
+        {
+            return InputLinks.Length == 0
+                ? NeuronType.Input
+                : OutputLinks.Length == 0
+                    ? NeuronType.Output
+                    : NeuronType.Hidden;
         }
     }
 }
