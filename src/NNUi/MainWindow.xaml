@@ -6,41 +6,30 @@
         xmlns:local="clr-namespace:NNUi"
         mc:Ignorable="d"
         Title="MainWindow"
-        Height="400"
         Width="300"
+        Height="355"
         WindowStyle="SingleBorderWindow"
         WindowStartupLocation="CenterScreen"
         SnapsToDevicePixels="True">
 
-    <DockPanel LastChildFill="True"
-               >
-
+    <DockPanel LastChildFill="True">
         <Button Content="Clear"
                 DockPanel.Dock="Bottom"
                 Click="Clear" />
         <Button Content="Learn"
                 DockPanel.Dock="Bottom"
                 Click="Study" />
-        <Button Content="Draw"
-                DockPanel.Dock="Bottom"
-                Click="Draw" />
-        <Button Content="Hide dots"
-                DockPanel.Dock="Bottom"
-                Click="Aa" />
+        <Border BorderBrush="Black"
+                BorderThickness="1"
+                Height="300"
+                Width="300">
+            <Grid>
+                <Grid x:Name="Net"
+                      Background="Transparent" />
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="300" />
-            </Grid.RowDefinitions>
-            <Canvas x:Name="Net">
-
-            </Canvas>
-            <Canvas x:Name="Root"
-                    Background="Transparent"
-                    SnapsToDevicePixels="True"
-                    MouseRightButtonDown="MouseClick"
-                    MouseLeftButtonDown="MouseClick">
-            </Canvas>
-        </Grid>
+                <Grid x:Name="Root"
+                      Background="Transparent" />
+            </Grid>
+        </Border>
     </DockPanel>
 </Window>

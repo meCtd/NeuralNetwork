@@ -25,21 +25,21 @@ namespace NNUi
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int Size = 100;
+
         private List<double[]> _input = new List<double[]>();
         private List<double[]> _expected = new List<double[]>();
 
         private NeuronalNetwork _network = new NeuronalNetwork(new (int Neurons, bool WithBias)[]
         {
             (2,false),
-            (5,true),
-            (5,false),
+            //(2,false),
+            (20,true),
+            (10,true),
             //(2,false),
             //(2,false),
-            (2,true)
-
+            (1,true)
         });
-
-        private double[] _temp = new double[2];
 
         private bool _isSuspended;
 
@@ -47,103 +47,61 @@ namespace NNUi
         public MainWindow()
         {
             InitializeComponent();
+            SetupGrid(Root, true);
+            SetupGrid(Net, false);
         }
 
-        private void Draw(object sender, EventArgs e)
+        private void SetupGrid(Grid grid, bool withEvents)
         {
-            if (_input.Count == 0 || _isSuspended)
-                return;
-
-            Net.Children.Clear();
-
-            try
+            grid.Children.Clear();
+            for (int i = 0; i < Size; i++)
             {
-                _isSuspended = true;
+                grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(3) });
 
-                for (int i = 0; i < 300; i += 3)
+                for (int j = 0; j < Size; j++)
                 {
-                    for (int j = 0; j < 300; j += 3)
+                    grid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(3) });
+                    var item = new Grid() { Background = new SolidColorBrush(Colors.Transparent) };
+                    if (withEvents)
                     {
-                        _temp[0] = i / 300d;
-                        _temp[1] = j / 300d;
-
-
-                        var result = _network.ForwardPass(_temp);
-
-                        Color color;
-
-                        if (result[0] < result[1])
-                            color = Colors.Orange;
-                        else
-                        {
-                            color = Colors.Pink;
-                        }
-
-
-
-                        Draw(Net, 3, color, i, j);
-
+                        item.MouseLeftButtonDown += MouseClick;
+                        item.MouseRightButtonDown += MouseClick;
                     }
+
+                    grid.Children.Add(item);
+
+                    Grid.SetRow(item, i);
+                    Grid.SetColumn(item, j);
                 }
-            }
-            finally
-            {
-                _isSuspended = false;
             }
         }
 
         private void MouseClick(object sender, MouseButtonEventArgs e)
         {
-            var position = Mouse.GetPosition(this);
+            var grid = (Panel)sender;
+            double row = Grid.GetRow(grid);
+            double column = Grid.GetColumn(grid);
 
             double data;
-            double data1;
             Color color;
             if (e.ChangedButton == MouseButton.Left)
             {
-                data = 0;
-                data1 = 1;
-
+                data = 1;
                 color = Colors.Green;
             }
             else
             {
-                data = 1;
-                data1 = 0;
+                data = 0;
                 color = Colors.Red;
             }
 
-            Draw(Root, 3, color, position.X, position.Y);
+            grid.Background = new SolidColorBrush(color);
 
-            var a = position.X / 300d;
-            var b = position.Y / 300d;
-
-            _input.Add(new[] { a, b });
-            _expected.Add(new[] { data, data1 });
+            _input.Add(new[] { row / 100d, column / 100d });
+            _expected.Add(new[] { data });
         }
 
-        private void Draw(Canvas canvas, double size, Color color, double x, double y)
-        {
-            var brush = new SolidColorBrush(color);
-
-            var point = new Ellipse()
-            {
-                Width = size,
-                Height = size,
-                SnapsToDevicePixels = true,
-                StrokeThickness = 0,
-                Stroke = brush,
-                Fill = brush
-
-            };
-
-            Canvas.SetLeft(point, x);
-            Canvas.SetTop(point, y);
-
-            canvas.Children.Add(point);
-        }
-
-        private void Study(object sender, RoutedEventArgs e)
+        private async void Study(object sender, RoutedEventArgs e)
         {
             if (_input.Count == 0 || _isSuspended)
                 return;
@@ -152,25 +110,35 @@ namespace NNUi
             {
                 _isSuspended = true;
 
-                for (int i = 0; i < 10000; i++)
+                await Task.Run(() =>
                 {
-                    double error = 0;
-                    var asd = 0;
-                    foreach (var tuple in _input.Zip(_expected, Tuple.Create)/*.OrderBy(s => _random.Next())*/)
+                    for (int i = 0, j = 0; i < 10000; i++, j++)
                     {
-                        error += Math.Pow(_network.Study(tuple.Item1, tuple.Item2).Error, 2);
-                        asd++;
+                        double error = 0;
+                        var data = _input.Zip(_expected, Tuple.Create).ToArray() /*.OrderBy(s => _random.Next())*/;
+                        var counter = 0;
+
+                        foreach (var tuple in data)
+                        {
+                            error += Math.Pow(_network.Study(tuple.Item1, tuple.Item2).Error, 2);
+                            counter++;
+                        }
+
+                        if (j == 500)
+                            j = 0;
+
+                        if (j == 0)
+                            App.Current.Dispatcher.Invoke(Draw);
+                        
+
+                        Debug.WriteLine(error / counter);
+                        if (error < .01)
+                        {
+                            Debug.WriteLine(i);
+                            return;
+                        }
                     }
-
-
-                    Debug.WriteLine(error / asd);
-                    if (error < .01)
-                    {
-                        Debug.WriteLine(i);
-                        return;
-                    }
-
-                }
+                });
             }
             finally
             {
@@ -182,13 +150,35 @@ namespace NNUi
         {
             _input.Clear();
             _expected.Clear();
-            Root.Children.Clear();
-            Net.Children.Clear();
+            SetupGrid(Root, true);
+            SetupGrid(Net, false);
         }
 
-        private void Aa(object sender, RoutedEventArgs e)
+        private void Draw()
         {
-            Root.Visibility = Root.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            if (_expected.Count == 0)
+                return;
+
+            var index = 0;
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    var item = (Panel)Net.Children[index];
+
+                    double row = Grid.GetRow(item);
+                    double column = Grid.GetColumn(item);
+
+                    var result = _network.ForwardPass(new[] { row / 100d, column / 100d });
+
+                    if (result[0] > 0.5)
+                        item.Background = new SolidColorBrush(Colors.Orange);
+                    else
+                        item.Background = new SolidColorBrush(Colors.Pink);
+
+                    index++;
+                }
+            }
         }
     }
 }
